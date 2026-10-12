@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<title>Reportes diarios</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+html,body{margin:0;padding:0;background:#F3F5F8}
+*{box-sizing:border-box}
+a{color:#1F3A5F}a:hover{color:#17304F}
+input,button{font-family:inherit}
+input:focus{outline:2px solid #1F3A5F;outline-offset:1px}
+</style>
+</helmet>
+<div style="min-height:100vh;display:flex;flex-direction:column;background:#F3F5F8;color:#18212E;font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:15px;line-height:1.45">
+  <header style="background:#FFFFFF;border-bottom:1px solid #DCE1E8">
+    <div style="max-width:1120px;margin:0 auto;padding:calc(12px + env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) 12px max(16px, env(safe-area-inset-left));display:flex;align-items:center;gap:10px 14px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:12px;min-width:0;flex:1 1 auto">
+        <img src="assets/logo-gecelca.png" alt="Gecelca" style="height:22px;width:auto;display:block;flex:none">
+        <img src="assets/logo-colombia-solar.png" alt="Colombia Solar" style="height:26px;width:auto;display:block;flex:none">
+        <sc-if value="{{ authed }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;min-width:0;padding-left:12px;border-left:1px solid #DCE1E8">
+            <div style="font-weight:600;font-size:14px;line-height:1.2;white-space:nowrap">Panel administrativo</div>
+            <div style="font-size:12px;color:#5B6675;line-height:1.3;white-space:nowrap">Reportes diarios</div>
+          </div>
+        </sc-if>
+      </div>
+      <sc-if value="{{ authed }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;gap:8px;margin-left:auto">
+          <a href="{{ publicUrl }}" style="display:flex;align-items:center;min-height:44px;padding:0 14px;border-radius:8px;background:#1F3A5F;color:#FFFFFF;font-size:14px;font-weight:600;text-decoration:none;white-space:nowrap">Crear reporte</a>
+          <button type="button" onClick="{{ doLogout }}" style="min-height:44px;padding:0 14px;border:1px solid #C3CBD6;border-radius:8px;background:#FFFFFF;color:#18212E;font-size:14px;font-weight:500;cursor:pointer;white-space:nowrap">Salir</button>
+        </div>
+      </sc-if>
+    </div>
+  </header>
+
+  <sc-if value="{{ showLogin }}" hint-placeholder-val="{{ true }}">
+    <main style="flex:1;display:flex;align-items:flex-start;justify-content:center;padding:28px 16px calc(28px + env(safe-area-inset-bottom))">
+      <section style="width:100%;max-width:460px;background:#FFFFFF;border:1px solid #DCE1E8;border-radius:10px;overflow:hidden">
+        <div style="background:#1F3A5F;color:#FFFFFF;padding:12px 18px;font-weight:600;font-size:16px">Reporte diario de gestión social</div>
+        <div style="padding:24px 18px;display:flex;flex-direction:column;gap:22px">
+          <div style="display:flex;align-items:center;justify-content:center;gap:16px 20px;flex-wrap:wrap;padding:6px 0 4px">
+            <img src="assets/logo-gecelca.png" alt="Gecelca" style="height:34px;width:auto;display:block">
+            <div style="width:1px;height:38px;background:#DCE1E8"></div>
+            <img src="assets/logo-colombia-solar.png" alt="Colombia Solar" style="height:44px;width:auto;display:block">
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px;text-align:center">
+            <h1 style="margin:0;font-size:22px;line-height:1.25;font-weight:700">Reportes diarios</h1>
+            <p style="margin:0;color:#5B6675;font-size:15px;text-wrap:pretty">Gestoras sociales: diligencia el reporte de la jornada.</p>
+          </div>
+          <a href="{{ publicUrl }}" style="display:flex;align-items:center;justify-content:center;min-height:54px;border-radius:8px;background:#1F3A5F;color:#FFFFFF;font-size:17px;font-weight:600;text-decoration:none" style-hover="background:#17304F">Crear reporte</a>
+          <form onSubmit="{{ doLogin }}" style="display:flex;flex-direction:column;gap:12px;padding-top:20px;border-top:1px solid #E6EAF0">
+            <div style="display:flex;flex-direction:column;gap:2px">
+              <div style="font-size:15px;font-weight:600">Acceso administradores</div>
+              <div style="font-size:14px;color:#5B6675">Consulta y descarga de reportes generados.</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <label for="usr" style="font-size:14px;font-weight:600">Usuario</label>
+              <input id="usr" type="text" autoComplete="username" autoCapitalize="none" autoCorrect="off" spellCheck="false" value="{{ user }}" onChange="{{ onUser }}" style="width:100%;height:50px;padding:0 14px;font-size:16px;color:#18212E;background:#FFFFFF;border:1px solid {{ userBorder }};border-radius:8px">
+              <sc-if value="{{ hasLoginError }}" hint-placeholder-val="{{ false }}"><div role="alert" style="font-size:14px;color:#B42318">{{ loginError }}</div></sc-if>
+            </div>
+            <button type="submit" disabled="{{ loggingIn }}" style="min-height:52px;border:1px solid #1F3A5F;border-radius:8px;background:#FFFFFF;color:#1F3A5F;font-size:16px;font-weight:600;cursor:pointer" style-hover="background:#EAF0F7">{{ loginLabel }}</button>
+          </form>
+        </div>
+      </section>
+    </main>
+  </sc-if>
+
+  <sc-if value="{{ showList }}" hint-placeholder-val="{{ false }}">
+    <main style="flex:1;width:100%;max-width:1120px;margin:0 auto;padding:20px 16px calc(40px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:18px">
+      <section style="background:#FFFFFF;border:1px solid #DCE1E8;border-radius:10px;padding:16px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+        <div style="display:flex;flex-direction:column;gap:2px;flex:1 1 280px;min-width:0">
+          <div style="font-size:13px;color:#5B6675">Enlace público para gestores</div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:14px;color:#1F3A5F;word-break:break-all">{{ publicUrl }}</div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;flex:1 1 240px">
+          <button type="button" onClick="{{ copyLink }}" style="min-height:44px;padding:0 14px;flex:1 1 auto;justify-content:center;border:1px solid #C3CBD6;border-radius:6px;background:#FFFFFF;color:#18212E;font-size:14px;font-weight:500;cursor:pointer">{{ copyLabel }}</button>
+          <a href="{{ publicUrl }}" target="_blank" rel="noopener" style="display:flex;align-items:center;min-height:44px;padding:0 14px;flex:1 1 auto;justify-content:center;border-radius:6px;background:#1F3A5F;color:#FFFFFF;font-size:14px;font-weight:500;text-decoration:none">Abrir formulario</a>
+        </div>
+      </section>
+
+      <section style="background:#FFFFFF;border:1px solid #DCE1E8;border-radius:10px;padding:16px 18px;display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+          <div style="font-weight:600;font-size:16px">Buscar reportes</div>
+          <button type="button" onClick="{{ clearFilters }}" style="height:34px;padding:0 12px;border:1px solid #DCE1E8;border-radius:6px;background:#FFFFFF;color:#5B6675;font-size:14px;cursor:pointer">Limpiar filtros</button>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
+          <sc-for list="{{ filterFields }}" as="f" hint-placeholder-count="4">
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <label for="{{ f.id }}" style="font-size:13px;font-weight:600;color:#3A4554">{{ f.label }}</label>
+              <input id="{{ f.id }}" type="{{ f.type }}" value="{{ f.value }}" onChange="{{ f.onChange }}" placeholder="{{ f.ph }}" autoComplete="off" style="height:44px;padding:0 12px;font-size:15px;border:1px solid #C3CBD6;border-radius:8px;background:#FFFFFF;color:#18212E">
+            </div>
+          </sc-for>
+        </div>
+      </section>
+
+      <section style="background:#FFFFFF;border:1px solid #DCE1E8;border-radius:10px;overflow:hidden">
+        <div style="padding:12px 18px;border-bottom:1px solid #E6EAF0;font-size:14px;color:#5B6675">{{ countText }}</div>
+        <sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:40px 18px;text-align:center;color:#5B6675;font-size:15px">{{ emptyText }}</div>
+        </sc-if>
+        <sc-for list="{{ rows }}" as="r" hint-placeholder-count="3">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:6px 18px;align-items:center;padding:14px 18px;border-bottom:1px solid #EEF1F5">
+            <div style="display:flex;flex-direction:column;gap:1px;min-width:0">
+              <span style="font-family:'IBM Plex Mono',monospace;font-weight:600;color:#1F3A5F;font-size:15px">{{ r.codigo }}</span>
+              <span style="font-size:13px;color:#5B6675">{{ r.fecha }}</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:1px;min-width:0">
+              <span style="font-size:12px;color:#5B6675">Gestor(a)</span>
+              <span style="font-size:14px;overflow:hidden;text-overflow:ellipsis">{{ r.gestor }}</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:1px;min-width:0">
+              <span style="font-size:12px;color:#5B6675">Sector / vereda / punto</span>
+              <span style="font-size:14px;overflow:hidden;text-overflow:ellipsis">{{ r.sector }}</span>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;grid-column:1 / -1">
+              <span style="font-size:13px;padding:3px 8px;border-radius:4px;background:{{ r.badgeBg }};color:{{ r.badgeColor }};white-space:nowrap">{{ r.novText }}</span>
+              <div style="display:flex;gap:8px">
+                <button type="button" onClick="{{ r.onOpen }}" style="min-height:44px;padding:0 16px;border:1px solid #1F3A5F;border-radius:8px;background:#FFFFFF;color:#1F3A5F;font-size:14px;font-weight:600;cursor:pointer" style-hover="background:#EAF0F7">Abrir</button>
+                <button type="button" onClick="{{ r.onDelete }}" aria-label="{{ r.delLabel }}" style="min-height:44px;padding:0 14px;border:1px solid #E3B4AE;border-radius:8px;background:#FFFFFF;color:#B42318;font-size:14px;font-weight:600;cursor:pointer" style-hover="background:#FDF1F0">Eliminar</button>
+              </div>
+            </div>
+          </div>
+        </sc-for>
+      </section>
+    </main>
+  </sc-if>
+
+  <sc-if value="{{ showDetail }}" hint-placeholder-val="{{ false }}">
+    <main style="flex:1;width:100%;max-width:1120px;margin:0 auto;padding:20px 16px calc(40px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:18px">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+        <button type="button" onClick="{{ closeDetail }}" style="min-height:44px;padding:0 14px;flex:1 1 auto;justify-content:center;border:1px solid #C3CBD6;border-radius:6px;background:#FFFFFF;color:#18212E;font-size:14px;font-weight:500;cursor:pointer">← Volver a la lista</button>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;flex:1 1 260px">
+          <a href="{{ pdfUrl }}" target="_blank" rel="noopener" style="display:flex;align-items:center;min-height:44px;padding:0 14px;flex:1 1 auto;justify-content:center;border:1px solid #C3CBD6;border-radius:6px;background:#FFFFFF;color:#18212E;font-size:14px;font-weight:500;text-decoration:none">Abrir PDF</a>
+          <a href="{{ pdfUrl }}" download="{{ pdfName }}" style="display:flex;align-items:center;min-height:44px;padding:0 14px;flex:1 1 auto;justify-content:center;border-radius:6px;background:#1F3A5F;color:#FFFFFF;font-size:14px;font-weight:600;text-decoration:none">Descargar PDF</a>
+          <button type="button" onClick="{{ sharePdf }}" style="min-height:44px;padding:0 14px;flex:1 1 auto;border:1px solid #1F3A5F;border-radius:6px;background:#EAF0F7;color:#1F3A5F;font-size:14px;font-weight:600;cursor:pointer">Compartir PDF</button>
+          <button type="button" onClick="{{ deleteSelected }}" style="min-height:44px;padding:0 14px;flex:1 1 auto;border:1px solid #E3B4AE;border-radius:6px;background:#FFFFFF;color:#B42318;font-size:14px;font-weight:600;cursor:pointer">Eliminar</button>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:2px">
+        <div style="font-size:13px;color:#5B6675">Código</div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:28px;font-weight:600;color:#1F3A5F">{{ detCodigo }}</div>
+        <div style="font-size:14px;color:#5B6675">{{ detCreado }}</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,440px),1fr));gap:18px;align-items:start">
+        <div style="display:flex;flex-direction:column;gap:14px;min-width:0">
+          <sc-for list="{{ detail }}" as="sec" hint-placeholder-count="4">
+            <section style="background:#FFFFFF;border:1px solid #DCE1E8;border-radius:10px;overflow:hidden">
+              <div style="padding:10px 18px;background:#1F3A5F;color:#FFFFFF;font-weight:600;font-size:15px">{{ sec.title }}</div>
+              <sc-for list="{{ sec.rows }}" as="r" hint-placeholder-count="3">
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:2px 16px;padding:9px 18px;border-top:1px solid #EEF1F5">
+                  <div style="font-size:13px;color:#5B6675">{{ r.k }}</div>
+                  <div style="font-size:14px;white-space:pre-wrap;word-break:break-word;color:{{ r.color }}">{{ r.v }}</div>
+                </div>
+              </sc-for>
+            </section>
+          </sc-for>
+        </div>
+        <sc-if value="{{ showPreview }}" hint-placeholder-val="{{ false }}"><div style="background:#FFFFFF;border:1px solid #DCE1E8;border-radius:10px;overflow:hidden;position:sticky;top:16px">
+          <iframe src="{{ pdfUrl }}" title="Vista previa del PDF" style="display:block;width:100%;height:82vh;min-height:520px;border:0;background:#E9ECF0"></iframe>
+        </div></sc-if>
+      </div>
+    </main>
+  </sc-if>
+  <sc-if value="{{ delOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ cancelDel }}" style="position:fixed;inset:0;z-index:50;background:rgba(16,24,36,0.55);display:flex;align-items:center;justify-content:center;padding:16px max(12px, env(safe-area-inset-right)) calc(16px + env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left))">
+      <div role="alertdialog" aria-modal="true" aria-labelledby="del-t" aria-describedby="del-d" onClick="{{ stopProp }}" style="width:100%;max-width:420px;background:#FFFFFF;border-radius:12px;padding:22px 18px 18px;display:flex;flex-direction:column;gap:18px;box-shadow:0 18px 48px rgba(16,24,36,0.25)">
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <h2 id="del-t" style="margin:0;font-size:19px;line-height:1.3;font-weight:700">¿Eliminar el reporte {{ delCodigo }}?</h2>
+          <p id="del-d" style="margin:0;font-size:15px;color:#3A4554">Se borrarán el reporte y sus fotos. Esta acción no se puede deshacer. El código no se volverá a asignar.</p>
+        </div>
+        <sc-if value="{{ hasDelError }}" hint-placeholder-val="{{ false }}"><div role="alert" style="font-size:14px;color:#B42318">{{ delError }}</div></sc-if>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <button type="button" onClick="{{ confirmDel }}" disabled="{{ deleting }}" style="min-height:52px;border:0;border-radius:8px;background:#B42318;color:#FFFFFF;font-size:16px;font-weight:600;cursor:pointer">{{ delLabel }}</button>
+          <button type="button" onClick="{{ cancelDel }}" style="min-height:52px;border:1px solid #C3CBD6;border-radius:8px;background:#FFFFFF;color:#18212E;font-size:16px;font-weight:600;cursor:pointer">Cancelar</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const TOKEN_KEY = 'rd_admin_token';
+const fmt = iso => iso ? iso.split('-').reverse().join('/') : '';
+const dash = v => (v === '' || v == null ? '—' : String(v));
+const row = (k, v) => ({ k, v: dash(v), color: v === '' || v == null ? '#8A94A3' : '#18212E' });
+
+class Component extends DCLogic {
+  state = { checking: true, token: null, user: '', pass: '', loginError: '', loggingIn: false,
+    filters: { codigo: '', fecha: '', gestor: '', sector: '' }, list: [], loaded: false, selected: null, pdfUrl: '', copied: false, delTarget: null, deleting: false, delError: '' };
+
+  async componentDidMount() {
+    this.mq = window.matchMedia('(min-width: 900px)');
+    this.onMq = () => this.setState({ wide: this.mq.matches });
+    this.onMq(); this.mq.addEventListener('change', this.onMq);
+    this.api = await import(new URL('./api.js', location.href).href);
+    this.api.preloadPdfAssets();
+    let token = null;
+    try { token = sessionStorage.getItem(TOKEN_KEY); } catch (e) {}
+    if (token && await this.api.checkSession(token)) { this.setState({ token, checking: false }, () => this.load()); }
+    else this.setState({ checking: false });
+  }
+  componentWillUnmount() {
+    if (this.mq) this.mq.removeEventListener('change', this.onMq); if (this.state.pdfUrl) URL.revokeObjectURL(this.state.pdfUrl); }
+
+  async call(fn) {
+    try { return await fn(); }
+    catch (e) {
+      if (e && e.message === 'NO_AUTH') { try { sessionStorage.removeItem(TOKEN_KEY); } catch (x) {} this.setState({ token: null, selected: null }); }
+      return null;
+    }
+  }
+  async load() {
+    const list = await this.call(() => this.api.listReports(this.state.token, this.state.filters));
+    if (list) this.setState({ list, loaded: true });
+  }
+  async login(ev) {
+    ev.preventDefault();
+    if (this.state.loggingIn) return;
+    if (!this.state.user) { this.setState({ loginError: 'Escribe tu usuario.' }); return; }
+    this.setState({ loggingIn: true, loginError: '' });
+    const res = await this.api.login(this.state.user);
+    if (!res.ok) { this.setState({ loggingIn: false, loginError: res.error }); return; }
+    try { sessionStorage.setItem(TOKEN_KEY, res.token); } catch (e) {}
+    this.setState({ loggingIn: false, token: res.token, user: '' }, () => this.load());
+  }
+  async logout() {
+    await this.api.logout(this.state.token);
+    try { sessionStorage.removeItem(TOKEN_KEY); } catch (e) {}
+    if (this.state.pdfUrl) URL.revokeObjectURL(this.state.pdfUrl);
+    this.setState({ token: null, list: [], selected: null, pdfUrl: '', user: '' });
+  }
+  setFilter(k, v) { this.setState(s => ({ filters: { ...s.filters, [k]: v } }), () => this.load()); }
+  async open(codigo) {
+    const [rep, pdf] = await Promise.all([
+      this.call(() => this.api.getReport(this.state.token, codigo)),
+      this.call(() => this.api.getReportPdf(this.state.token, codigo))
+    ]);
+    if (!rep) return;
+    if (this.state.pdfUrl) URL.revokeObjectURL(this.state.pdfUrl);
+    this.setState({ selected: rep, pdfBlob: pdf || null, pdfUrl: pdf ? URL.createObjectURL(pdf) : '' });
+    window.scrollTo({ top: 0 });
+  }
+  askDelete(codigo) { document.body.style.overflow = 'hidden'; this.setState({ delTarget: codigo, delError: '' }); }
+  cancelDelete() { if (this.state.deleting) return; document.body.style.overflow = ''; this.setState({ delTarget: null, delError: '' }); }
+  async doDelete() {
+    const codigo = this.state.delTarget; if (!codigo || this.state.deleting) return;
+    this.setState({ deleting: true, delError: '' });
+    const ok = await this.call(() => this.api.deleteReport(this.state.token, codigo));
+    if (!ok) { this.setState({ deleting: false, delError: this.state.token ? 'No fue posible eliminar el reporte. Intenta de nuevo.' : '' }); if (!this.state.token) { document.body.style.overflow = ''; this.setState({ delTarget: null }); } return; }
+    document.body.style.overflow = '';
+    if (this.state.selected && this.state.selected.codigo === codigo) this.closeDetail();
+    this.setState(st => ({ deleting: false, delTarget: null, list: st.list.filter(r => r.codigo !== codigo) }));
+  }
+  closeDetail() { if (this.state.pdfUrl) URL.revokeObjectURL(this.state.pdfUrl); this.setState({ selected: null, pdfUrl: '' }); }
+
+  renderVals() {
+    const { checking, token, list, filters, selected: s, loaded } = this.state;
+    const authed = !!token;
+    const publicUrl = new URL('reporte', location.href).href;
+    const anyFilter = Object.values(filters).some(Boolean);
+    let detail = [];
+    if (s) {
+      const c = s.charla, a = s.acomp, n = s.novedades;
+      detail = [
+        { title: 'Información general', rows: [row('Fecha', fmt(s.fecha)), row('Gestor(a) que reporta', s.gestor), row('Sector / vereda / punto', s.sector)] },
+        { title: '1. Charla pre-operativa', rows: [row('Se realizó charla pre-operativa', c.realizada ? 'Sí' : 'No'), row('Hora', c.hora), row('Responsable', c.responsable),
+          row('Asistentes (n.º)', c.asistentes), row('Temas abordados', c.temas), row('Total de personas en campo (n.º)', c.totalCampo),
+          row('Del total, equipo social (n.º)', c.equipoSocial), row('Capacitaciones realizadas (n.º)', c.capacitacionesN),
+          row('Detalle de capacitaciones', s.capacitaciones.filter(x => x.tema).map(x => x.tema + ' — ' + (x.asistentes || '0') + ' asistentes').join('\n'))] },
+        { title: '2. Acompañamiento social', rows: [row('Ubicación', a.ubicacion),
+          row('Actividad técnica acompañada', a.actividades.map(x => x === 'Otra' ? 'Otra: ' + a.actividadOtra : x).join('\n')),
+          row('Rol del equipo social', a.roles.map(x => x === 'Otro' ? 'Otro: ' + a.rolOtro : x).join('\n'))] },
+        { title: '3. Novedades', rows: [row('Resultado de la jornada', n.tipo === 'sin' ? 'Sin novedades' : 'Con novedades (' + n.items.length + ')')] }
+      ];
+      n.items.forEach((it, i) => detail.push({ title: 'Novedad ' + (i + 1), rows: [row('Descripción', it.descripcion), row('Personas o áreas involucradas', it.involucrados),
+        row('Acciones realizadas', it.acciones), row('Próximos pasos', it.proximos), row('Comentarios', it.comentarios), row('Estado', it.estado)] }));
+    }
+    const ff = (k, label, type, ph) => ({ id: 'flt-' + k, label, type, ph, value: filters[k], onChange: e => this.setFilter(k, e.target.value) });
+    return {
+      authed, showLogin: !checking && !authed, showList: authed && !s, showDetail: authed && !!s,
+      user: this.state.user, userBorder: this.state.loginError ? '#B42318' : '#C3CBD6',
+      onUser: e => this.setState({ user: e.target.value, loginError: '' }),
+      doLogin: e => this.login(e), loggingIn: this.state.loggingIn, loginLabel: this.state.loggingIn ? 'Verificando…' : 'Entrar',
+      showPreview: this.state.wide && !!this.state.pdfUrl,
+      loginError: this.state.loginError, hasLoginError: !!this.state.loginError,
+      doLogout: () => this.logout(),
+      publicUrl, copyLabel: this.state.copied ? 'Copiado' : 'Copiar enlace',
+      copyLink: () => { (navigator.clipboard ? navigator.clipboard.writeText(publicUrl) : Promise.reject()).catch(() => {}); this.setState({ copied: true }); setTimeout(() => this.setState({ copied: false }), 1800); },
+      filterFields: [ff('codigo', 'Código', 'text', '20261015-001'), ff('fecha', 'Fecha del reporte', 'date', ''), ff('gestor', 'Gestor(a)', 'text', 'Nombre'), ff('sector', 'Sector / vereda / punto', 'text', 'Sector')],
+      clearFilters: () => this.setState({ filters: { codigo: '', fecha: '', gestor: '', sector: '' } }, () => this.load()),
+      countText: !loaded ? 'Cargando…' : list.length === 1 ? '1 reporte' : list.length + ' reportes',
+      isEmpty: loaded && !list.length,
+      emptyText: anyFilter ? 'Ningún reporte coincide con la búsqueda.' : 'Aún no se han generado reportes.',
+      rows: list.map(r => {
+        const con = r.novedades.tipo === 'con';
+        const pend = con && r.novedades.items.some(x => x.estado !== 'Resuelta');
+        return {
+          codigo: r.codigo, fecha: fmt(r.fecha), gestor: r.gestor, sector: r.sector,
+          novText: con ? r.novedades.items.length + (r.novedades.items.length === 1 ? ' novedad' : ' novedades') : 'Sin novedades',
+          badgeBg: pend ? '#FBEFD9' : con ? '#EAF0F7' : '#EEF1F5', badgeColor: pend ? '#7A4B00' : con ? '#1F3A5F' : '#5B6675',
+          onOpen: () => this.open(r.codigo),
+          onDelete: () => this.askDelete(r.codigo), delLabel: 'Eliminar reporte ' + r.codigo
+        };
+      }),
+      detail, closeDetail: () => this.closeDetail(),
+      deleteSelected: () => s && this.askDelete(s.codigo),
+      delOpen: !!this.state.delTarget, delCodigo: this.state.delTarget || '', deleting: this.state.deleting,
+      delLabel: this.state.deleting ? 'Eliminando…' : 'Eliminar reporte', delError: this.state.delError, hasDelError: !!this.state.delError,
+      confirmDel: () => this.doDelete(), cancelDel: () => this.cancelDelete(), stopProp: e => e.stopPropagation(),
+      detCodigo: s ? s.codigo : '', detCreado: s ? 'Registrado el ' + new Date(s.creadoEn).toLocaleString('es-CO', { dateStyle: 'long', timeStyle: 'short' }) : '',
+      sharePdf: async () => {
+        const s2 = this.state.selected; if (!s2 || !this.state.pdfBlob) return;
+        const { sharePdf } = await import(new URL('./share.js', location.href).href);
+        await sharePdf(this.state.pdfBlob, 'Reporte-diario-' + s2.codigo + '.pdf', 'Reporte diario ' + s2.codigo);
+      },
+      pdfUrl: this.state.pdfUrl, pdfName: s ? 'Reporte-diario-' + s.codigo + '.pdf' : ''
+    };
+  }
+}
+</script>
+</body>
+</html>
