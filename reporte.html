@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<title>Reporte diario</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+html,body{margin:0;padding:0;background:#F3F5F8;-webkit-text-size-adjust:100%}
+*{box-sizing:border-box}
+a{color:#1F3A5F}a:hover{color:#17304F}
+input,textarea,button{font-family:inherit}
+input:focus,textarea:focus{outline:2px solid #1F3A5F;outline-offset:1px}
+</style>
+</helmet>
+<div style="min-height:100vh;display:flex;flex-direction:column;background:#F3F5F8;color:#18212E;font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:16px;line-height:1.45">
+
+  <header style="background:#FFFFFF;border-bottom:1px solid #DCE1E8">
+    <div style="max-width:720px;margin:0 auto;padding:calc(10px + env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) 10px max(16px, env(safe-area-inset-left));display:flex;flex-direction:column;gap:10px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="display:flex;align-items:center;gap:12px;min-width:0;flex:1">
+          <img src="assets/logo-gecelca.png" alt="Gecelca" style="height:22px;width:auto;display:block;flex:none">
+          <img src="assets/logo-colombia-solar.png" alt="Colombia Solar" style="height:26px;width:auto;display:block;flex:none">
+        </div>
+        <button type="button" onClick="{{ askExit }}" style="flex:none;min-height:44px;min-width:72px;padding:0 14px;border:1px solid #C3CBD6;border-radius:8px;background:#FFFFFF;color:#18212E;font-size:15px;font-weight:600;cursor:pointer" style-hover="background:#F3F5F8">Salir</button>
+      </div>
+      <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px">
+        <div style="display:flex;align-items:baseline;gap:8px;min-width:0;flex-wrap:wrap">
+          <div style="font-weight:600;font-size:16px;line-height:1.2">Reporte diario</div>
+          <div style="font-size:13px;color:#5B6675;line-height:1.2">Gestión social en campo</div>
+        </div>
+        <sc-if value="{{ showStepCount }}" hint-placeholder-val="{{ true }}">
+          <div style="font-size:13px;color:#5B6675;white-space:nowrap">{{ stepCount }}</div>
+        </sc-if>
+      </div>
+    </div>
+    <sc-if value="{{ showProgress }}" hint-placeholder-val="{{ true }}">
+      <div style="max-width:720px;margin:0 auto;padding:0 max(16px, env(safe-area-inset-right)) 12px max(16px, env(safe-area-inset-left));display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px">
+        <sc-for list="{{ progress }}" as="p" hint-placeholder-count="4">
+          <button type="button" onClick="{{ p.onClick }}" disabled="{{ p.disabled }}" style="all:unset;cursor:pointer;display:flex;flex-direction:column;gap:6px;min-width:0;padding:4px 0">
+            <div style="height:4px;border-radius:2px;background:{{ p.bar }}"></div>
+            <div style="font-size:12px;color:{{ p.color }};font-weight:{{ p.weight }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ p.label }}</div>
+          </button>
+        </sc-for>
+      </div>
+    </sc-if>
+  </header>
+
+  <main style="flex:1;width:100%;max-width:720px;margin:0 auto;padding:16px max(12px, env(safe-area-inset-right)) calc(32px + env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));display:flex;flex-direction:column;gap:20px">
+
+    <sc-if value="{{ hasStepErrors }}" hint-placeholder-val="{{ false }}">
+      <div role="alert" style="background:#FDF1F0;border:1px solid #F1C4BF;color:#8A1C12;border-radius:8px;padding:12px 14px;font-size:15px">{{ stepErrorText }}</div>
+    </sc-if>
+
+    <sc-if value="{{ s0 }}" hint-placeholder-val="{{ true }}">
+      <section data-screen-label="Información general" style="background:#FFFFFF;border:1px solid #DCE1E8;border-radius:10px;overflow:hidden">
+        <div style="background:#1F3A5F;color:#FFFFFF;padding:12px 18px;font-weight:600;font-size:16px">Información general</div>
+        <div style="padding:20px 18px;display:flex;flex-direction:column;gap:18px">
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div style="font-size:14px;font-weight:600">Código</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;min-height:48px;padding:10px 14px;border:1px dashed #C3CBD6;border-radius:8px;background:#F7F9FB">
+              <span style="font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:16px;color:#1F3A5F;letter-spacing:0.02em">{{ codePreview }}</span>
+              <span style="font-size:13px;color:#5B6675">Se asigna automáticamente al generar el reporte</span>
+            </div>
+          </div>
+          <sc-for list="{{ generalFields }}" as="f" hint-placeholder-count="3">
+            <div data-err="{{ f.errFlag }}" style="display:flex;flex-direction:column;gap:6px">
+              <label for="{{ f.id }}" style="font-size:14px;font-weight:600">{{ f.label }} <span style="color:#B42318">*</span></label>
+              <input id="{{ f.id }}" type="{{ f.type }}" inputMode="{{ f.inputMode }}" value="{{ f.value }}" onChange="{{ f.onChange }}" placeholder="{{ f.placeholder }}" autoComplete="off" required="{{ true }}" style="width:100%;height:48px;padding:0 14px;font-size:16px;color:#18212E;background:#FFFFFF;border:1px solid {{ f.border }};border-radius:8px;appearance:none;-webkit-appearance:none">
+              <sc-if value="{{ f.hasError }}" hint-placeholder-val="{{ false }}"><div style="font-size:14px;color:#B42318">{{ f.error }}</div></sc-if>
+            </div>
+          </sc-for>
+          <div style="font-size:13px;color:#5B6675"><span style="color:#B42318">*</span> Obligatorio. También es obligatorio indicar si hubo novedades (sección 3).</div>
+        </div>
+      </section>
+    </sc-if>
+
+    <sc-if value="{{ s1 }}" hint-placeholder-val="{{ false }}">
+      <section data-screen-label="1. Charla pre-operativa" style="background:#FFFFFF;border:1px solid #DCE1E8;border-radius:10px;overflow:hidden">
+        <div style="background:#1F3A5F;color:#FFFFFF;padding:12px 18px;font-weight:600;font-size:16px">1. Charla pre-operativa</div>
+        <div style="padding:20px 18px;display:flex;flex-direction:column;gap:18px">
+          <label style="display:flex;align-items:center;gap:12px;min-height:52px;padding:12px 14px;border:1px solid {{ charlaOpt.border }};background:{{ charlaOpt.bg }};border-radius:8px;cursor:pointer">
+            <input type="checkbox" checked="{{ charlaOpt.checked }}" onChange="{{ charlaOpt.onChange }}" style="width:22px;height:22px;margin:0;accent-color:#1F3A5F;flex:none">
+            <span style="font-size:16px;font-weight:500">Se realizó charla pre-operativa en la jornada</span>
+          </label>
+          <sc-if value="{{ charlaOpen }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;gap:18px">
+              <sc-for list="{{ charlaFields }}" as="f" hint-placeholder-count="7">
+                <div data-err="{{ f.errFlag }}" style="display:flex;flex-direction:column;gap:6px">
+                  <label for="{{ f.id }}" style="font-size:14px;font-weight:600">{{ f.label }}</label>
+                  <sc-if value="{{ f.single }}" hint-placeholder-val="{{ true }}">
+                    <input id="{{ f.id }}" type="{{ f.type }}" inputMode="{{ f.inputMode }}" value="{{ f.value }}" onChange="{{ f.onChange }}" placeholder="{{ f.placeholder }}" autoComplete="off" style="width:100%;height:48px;padding:0 14px;font-size:16px;color:#18212E;background:#FFFFFF;border:1px solid {{ f.border }};border-radius:8px;appearance:none;-webkit-appearance:none">
+                  </sc-if>
+                  <sc-if value="{{ f.multiline }}" hint-placeholder-val="{{ false }}">
+                    <textarea id="{{ f.id }}" rows="3" value="{{ f.value }}" onChange="{{ f.onChange }}" placeholder="{{ f.placeholder }}" style="width:100%;min-height:96px;padding:12px 14px;font-size:16px;line-height:1.45;color:#18212E;background:#FFFFFF;border:1px solid {{ f.border }};border-radius:8px;resize:vertical"></textarea>
+                  </sc-if>
+                  <sc-if value="{{ f.hasHint }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px;color:#5B6675">{{ f.hint }}</div></sc-if>
+                  <sc-if value="{{ f.hasError }}" hint-placeholder-val="{{ false }}"><div style="font-size:14px;color:#B42318">{{ f.error }}</div></sc-if>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <div style="display:flex;flex-direction:column;gap:12px;padding-top:6px;border-top:1px solid #E6EAF0">
+            <div style="display:flex;flex-direction:column;gap:2px;padding-top:14px">
+              <div style="font-size:16px;font-weight:600">Detalle de capacitaciones</div>
+              <div style="font-size:14px;color:#5B6675">Una fila por tema. Déjalo vacío si no hubo capacitaciones.</div>
+            </div>
+            <sc-for list="{{ caps }}" as="c" hint-placeholder-count="1">
+              <div style="display:flex;flex-direction:column;gap:12px;padding:14px;border:1px solid #DCE1E8;border-radius:8px;background:#FAFBFC">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+                  <div style="font-size:14px;font-weight:600;color:#1F3A5F">Capacitación {{ c.num }}</div>
+                  <sc-if value="{{ c.canRemove }}" hint-placeholder-val="{{ false }}">
+                    <button type="button" onClick="{{ c.onRemove }}" style="height:36px;padding:0 12px;border:1px solid #DCE1E8;border-radius:6px;background:#FFFFFF;color:#5B6675;font-size:14px;cursor:pointer">Quitar</button>
+                  </sc-if>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:12px">
+                  <div data-err="{{ c.tema.errFlag }}" style="display:flex;flex-direction:column;gap:6px;min-width:0">
+                    <label for="{{ c.tema.id }}" style="font-size:14px;font-weight:600">Tema</label>
+                    <input id="{{ c.tema.id }}" type="text" value="{{ c.tema.value }}" onChange="{{ c.tema.onChange }}" autoComplete="off" style="width:100%;height:48px;padding:0 14px;font-size:16px;color:#18212E;background:#FFFFFF;border:1px solid {{ c.tema.border }};border-radius:8px">
+                  </div>
+                  <div data-err="{{ c.asist.errFlag }}" style="display:flex;flex-direction:column;gap:6px;min-width:0">
+                    <label for="{{ c.asist.id }}" style="font-size:14px;font-weight:600">Asistentes</label>
+                    <input id="{{ c.asist.id }}" type="text" inputMode="numeric" value="{{ c.asist.value }}" onChange="{{ c.asist.onChange }}" autoComplete="off" style="width:100%;height:48px;padding:0 14px;font-size:16px;color:#18212E;background:#FFFFFF;border:1px solid {{ c.asist.border }};border-radius:8px">
+                  </div>
+                </div>
+                <sc-if value="{{ c.hasError }}" hint-placeholder-val="{{ false }}"><div style="font-size:14px;color:#B42318">{{ c.error }}</div></sc-if>
+              </div>
+            </sc-for>
+            <button type="button" onClick="{{ addCap }}" style="height:48px;border:1px dashed #9AA5B1;border-radius:8px;background:#FFFFFF;color:#1F3A5F;font-size:15px;font-weight:600;cursor:pointer" style-hover="background:#EAF0F7">+ Agregar capacitación</button>
+          </div>
+        </div>
+      </section>
+    </sc-if>
+
+    <sc-if value="{{ s2 }}" hint-placeholder-val="{{ false }}">
+      <section data-screen-label="2. Acompañamiento social" style="background:#FFFFFF;border:1px solid #DCE1E8;border-radius:10px;overflow:hidden">
+        <div style="background:#1F3A5F;color:#FFFFFF;padding:12px 18px;font-weight:600;font-size:16px">2. Acompañamiento social a la parte técnica</div>
+        <div style="padding:20px 18px;display:flex;flex-direction:column;gap:22px">
+          <div data-err="{{ ubic.errFlag }}" style="display:flex;flex-direction:column;gap:6px">
+            <label for="{{ ubic.id }}" style="font-size:14px;font-weight:600">Ubicación (sector / vereda / punto)</label>
+            <input id="{{ ubic.id }}" type="text" value="{{ ubic.value }}" onChange="{{ ubic.onChange }}" autoComplete="off" style="width:100%;height:48px;padding:0 14px;font-size:16px;color:#18212E;background:#FFFFFF;border:1px solid {{ ubic.border }};border-radius:8px">
+            <sc-if value="{{ canCopySector }}" hint-placeholder-val="{{ false }}">
+              <button type="button" onClick="{{ copySector }}" style="align-self:flex-start;height:36px;padding:0 12px;border:1px solid #DCE1E8;border-radius:6px;background:#FFFFFF;color:#1F3A5F;font-size:14px;cursor:pointer">Usar «{{ sectorShort }}»</button>
+            </sc-if>
+            <sc-if value="{{ ubic.hasError }}" hint-placeholder-val="{{ false }}"><div style="font-size:14px;color:#B42318">{{ ubic.error }}</div></sc-if>
+          </div>
+
+          <fieldset style="border:0;padding:0;margin:0;display:flex;flex-direction:column;gap:8px">
+            <legend style="padding:0;margin-bottom:10px;font-size:16px;font-weight:600">Actividad técnica acompañada <span style="font-weight:400;color:#5B6675;font-size:14px">(marque las que apliquen)</span></legend>
+            <sc-for list="{{ actOpts }}" as="o" hint-placeholder-count="8">
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <label style="display:flex;align-items:center;gap:12px;min-height:48px;padding:10px 14px;border:1px solid {{ o.border }};background:{{ o.bg }};border-radius:8px;cursor:pointer">
+                  <input type="checkbox" checked="{{ o.checked }}" onChange="{{ o.onChange }}" style="width:22px;height:22px;margin:0;accent-color:#1F3A5F;flex:none">
+                  <span style="font-size:16px">{{ o.label }}</span>
+                </label>
+                <sc-if value="{{ o.showOther }}" hint-placeholder-val="{{ false }}">
+                  <div data-err="{{ o.other.errFlag }}" style="display:flex;flex-direction:column;gap:6px;padding-left:14px">
+                    <input type="text" value="{{ o.other.value }}" onChange="{{ o.other.onChange }}" placeholder="¿Cuál?" aria-label="Especifique la otra actividad" autoComplete="off" style="width:100%;height:48px;padding:0 14px;font-size:16px;color:#18212E;background:#FFFFFF;border:1px solid {{ o.other.border }};border-radius:8px">
+                    <sc-if value="{{ o.other.hasError }}" hint-placeholder-val="{{ false }}"><div style="font-size:14px;color:#B42318">{{ o.other.error }}</div></sc-if>
+                  </div>
+                </sc-if>
+              </div>
+            </sc-for>
+          </fieldset>
+
+          <fieldset style="border:0;padding:0;margin:0;display:flex;flex-direction:column;gap:8px">
+            <legend style="padding:0;margin-bottom:10px;font-size:16px;font-weight:600">Rol del equipo social durante la actividad <span style="font-weight:400;color:#5B6675;font-size:14px">(marque las que apliquen)</span></legend>
+            <sc-for list="{{ rolOpts }}" as="o" hint-placeholder-count="6">
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <label style="display:flex;align-items:center;gap:12px;min-height:48px;padding:10px 14px;border:1px solid {{ o.border }};background:{{ o.bg }};border-radius:8px;cursor:pointer">
+                  <input type="checkbox" checked="{{ o.checked }}" onChange="{{ o.onChange }}" style="width:22px;height:22px;margin:0;accent-color:#1F3A5F;flex:none">
+                  <span style="font-size:16px">{{ o.label }}</span>
+                </label>
+                <sc-if value="{{ o.showOther }}" hint-placeholder-val="{{ false }}">
+                  <div data-err="{{ o.other.errFlag }}" style="display:flex;flex-direction:column;gap:6px;padding-left:14px">
+                    <input type="text" value="{{ o.other.value }}" onChange="{{ o.other.onChange }}" placeholder="¿Cuál?" aria-label="Especifique el otro rol" autoComplete="off" style="width:100%;height:48px;padding:0 14px;font-size:16px;color:#18212E;background:#FFFFFF;border:1px solid {{ o.other.border }};border-radius:8px">
+                    <sc-if value="{{ o.other.hasError }}" hint-placeholder-val="{{ false }}"><div style="font-size:14px;color:#B42318">{{ o.other.error }}</div></sc-if>
+                  </div>
+                </sc-if>
+              </div>
+            </sc-for>
+          </fieldset>
+        </div>
+      </section>
+    </sc-if>
+
+    <sc-if value="{{ s3 }}" hint-placeholder-val="{{ false }}">
+      <section data-screen-label="3. Novedades" style="background:#FFFFFF;border:1px solid #DCE1E8;border-radius:10px;overflow:hidden">
+        <div style="background:#1F3A5F;color:#FFFFFF;padding:12px 18px;font-weight:600;font-size:16px">3. Novedades <span style="color:#F4B4AC">*</span></div>
+        <div style="padding:20px 18px;display:flex;flex-direction:column;gap:18px">
+          <div data-err="{{ tipoErrFlag }}" role="radiogroup" aria-label="¿Hubo novedades?" style="display:flex;flex-direction:column;gap:8px">
+            <sc-for list="{{ tipoOpts }}" as="o" hint-placeholder-count="2">
+              <label style="display:flex;align-items:flex-start;gap:12px;min-height:56px;padding:12px 14px;border:1px solid {{ o.border }};background:{{ o.bg }};border-radius:8px;cursor:pointer">
+                <input type="radio" name="tipo-novedad" checked="{{ o.checked }}" onChange="{{ o.onChange }}" style="width:22px;height:22px;margin:1px 0 0;accent-color:#1F3A5F;flex:none">
+                <span style="display:flex;flex-direction:column;gap:2px">
+                  <span style="font-size:16px;font-weight:600">{{ o.label }}</span>
+                  <span style="font-size:14px;color:#5B6675">{{ o.sub }}</span>
+                </span>
+              </label>
+            </sc-for>
+            <sc-if value="{{ hasTipoError }}" hint-placeholder-val="{{ false }}"><div style="font-size:14px;color:#B42318">{{ tipoError }}</div></sc-if>
+          </div>
+
+          <sc-if value="{{ conNovedades }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;gap:16px">
+              <sc-for list="{{ novs }}" as="n" hint-placeholder-count="1">
+                <div style="display:flex;flex-direction:column;border:1px solid #C9D3DF;border-radius:10px;overflow:hidden">
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px;background:#EAF0F7;border-bottom:1px solid #C9D3DF">
+                    <div style="font-size:15px;font-weight:600;color:#1F3A5F">Novedad {{ n.num }}</div>
+                    <sc-if value="{{ n.canRemove }}" hint-placeholder-val="{{ false }}">
+                      <button type="button" onClick="{{ n.onRemove }}" style="height:36px;padding:0 12px;border:1px solid #C9D3DF;border-radius:6px;background:#FFFFFF;color:#5B6675;font-size:14px;cursor:pointer">Eliminar</button>
+                    </sc-if>
+                  </div>
+                  <div style="padding:16px 14px;display:flex;flex-direction:column;gap:16px">
+                    <sc-for list="{{ n.fields }}" as="f" hint-placeholder-count="5">
+                      <div data-err="{{ f.errFlag }}" style="display:flex;flex-direction:column;gap:6px">
+                        <label for="{{ f.id }}" style="font-size:14px;font-weight:600">{{ f.label }}</label>
+                        <textarea id="{{ f.id }}" rows="3" value="{{ f.value }}" onChange="{{ f.onChange }}" placeholder="{{ f.placeholder }}" style="width:100%;min-height:88px;padding:12px 14px;font-size:16px;line-height:1.45;color:#18212E;background:#FFFFFF;border:1px solid {{ f.border }};border-radius:8px;resize:vertical"></textarea>
+                        <sc-if value="{{ f.hasError }}" hint-placeholder-val="{{ false }}"><div style="font-size:14px;color:#B42318">{{ f.error }}</div></sc-if>
+                      </div>
+                    </sc-for>
+                    <div style="display:flex;flex-direction:column;gap:8px">
+                      <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px">
+                        <div style="font-size:14px;font-weight:600">Fotos de la novedad (opcional)</div>
+                        <div style="font-size:13px;color:#5B6675">{{ n.fotosCount }} de 2</div>
+                      </div>
+                      <sc-if value="{{ n.hasFotos }}" hint-placeholder-val="{{ false }}">
+                        <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px">
+                          <sc-for list="{{ n.fotos }}" as="ph" hint-placeholder-count="1">
+                            <div style="position:relative;border:1px solid #C9D3DF;border-radius:8px;overflow:hidden;background:#F3F5F8;aspect-ratio:4/3">
+                              <img src="{{ ph.src }}" alt="{{ ph.alt }}" style="display:block;width:100%;height:100%;object-fit:cover">
+                              <button type="button" onClick="{{ ph.onRemove }}" aria-label="{{ ph.removeLabel }}" style="position:absolute;top:6px;right:6px;height:36px;padding:0 12px;border:0;border-radius:6px;background:rgba(16,24,36,0.78);color:#FFFFFF;font-size:14px;font-weight:600;cursor:pointer">Quitar</button>
+                            </div>
+                          </sc-for>
+                        </div>
+                      </sc-if>
+                      <sc-if value="{{ n.canAddFoto }}" hint-placeholder-val="{{ true }}">
+                        <label style="position:relative;display:flex;align-items:center;justify-content:center;height:48px;border:1px dashed #9AA5B1;border-radius:8px;background:#FFFFFF;color:#1F3A5F;font-size:15px;font-weight:600;cursor:pointer" style-hover="background:#EAF0F7">
+                          <input type="file" accept="image/*" multiple onChange="{{ n.onAddFotos }}" style="position:absolute;opacity:0;width:1px;height:1px">
+                          <span>{{ n.fotoBtnLabel }}</span>
+                        </label>
+                      </sc-if>
+                      <div style="font-size:13px;color:#5B6675">Máximo 2 fotos por novedad. Puedes tomarlas con la cámara o elegirlas de la galería.</div>
+                      <sc-if value="{{ n.hasFotoMsg }}" hint-placeholder-val="{{ false }}"><div style="font-size:14px;color:#B42318">{{ n.fotoMsg }}</div></sc-if>
+                    </div>
+                    <div data-err="{{ n.estadoErrFlag }}" role="radiogroup" aria-label="Estado de la novedad" style="display:flex;flex-direction:column;gap:8px">
+                      <div style="font-size:14px;font-weight:600">Estado de la novedad</div>
+                      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(92px,1fr));gap:8px">
+                        <sc-for list="{{ n.estados }}" as="e" hint-placeholder-count="3">
+                          <label style="display:flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:8px;border:1px solid {{ e.border }};background:{{ e.bg }};color:{{ e.color }};border-radius:8px;cursor:pointer;font-size:15px;font-weight:600;text-align:center">
+                            <input type="radio" name="{{ e.name }}" checked="{{ e.checked }}" onChange="{{ e.onChange }}" style="position:absolute;opacity:0;width:1px;height:1px">
+                            <span>{{ e.label }}</span>
+                          </label>
+                        </sc-for>
+                      </div>
+                      <sc-if value="{{ n.hasEstadoError }}" hint-placeholder-val="{{ false }}"><div style="font-size:14px;color:#B42318">{{ n.estadoError }}</div></sc-if>
+                    </div>
+                  </div>
+                </div>
+              </sc-for>
+              <button type="button" onClick="{{ addNov }}" style="height:48px;border:1px dashed #9AA5B1;border-radius:8px;background:#FFFFFF;color:#1F3A5F;font-size:15px;font-weight:600;cursor:pointer" style-hover="background:#EAF0F7">+ Agregar otra novedad</button>
+            </div>
+          </sc-if>
+        </div>
+      </section>
+    </sc-if>
+
+    <sc-if value="{{ isReview }}" hint-placeholder-val="{{ false }}">
+      <div data-screen-label="Revisión" style="display:flex;flex-direction:column;gap:16px">
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <h1 style="margin:0;font-size:22px;line-height:1.25;font-weight:700">Revisa tu reporte antes de enviarlo</h1>
+          <p style="margin:0;color:#5B6675;font-size:15px">Al generar el reporte se asigna el código y se crea el PDF. Después no podrás modificarlo.</p>
+        </div>
+        <sc-if value="{{ hasSubmitError }}" hint-placeholder-val="{{ false }}">
+          <div role="alert" style="background:#FDF1F0;border:1px solid #F1C4BF;color:#8A1C12;border-radius:8px;padding:12px 14px;font-size:15px">{{ submitError }}</div>
+        </sc-if>
+        <sc-for list="{{ review }}" as="sec" hint-placeholder-count="4">
+          <section style="background:#FFFFFF;border:1px solid #DCE1E8;border-radius:10px;overflow:hidden">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px 10px 18px;background:#1F3A5F;color:#FFFFFF">
+              <div style="font-weight:600;font-size:15px">{{ sec.title }}</div>
+              <button type="button" onClick="{{ sec.onEdit }}" style="height:34px;padding:0 12px;border:1px solid rgba(255,255,255,0.5);border-radius:6px;background:transparent;color:#FFFFFF;font-size:14px;cursor:pointer">Editar</button>
+            </div>
+            <div style="display:flex;flex-direction:column">
+              <sc-for list="{{ sec.rows }}" as="r" hint-placeholder-count="3">
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:2px 16px;padding:10px 18px;border-top:1px solid #EEF1F5">
+                  <div style="font-size:14px;color:#5B6675">{{ r.k }}</div>
+                  <div style="font-size:15px;white-space:pre-wrap;word-break:break-word;color:{{ r.color }}">{{ r.v }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </section>
+        </sc-for>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button type="button" onClick="{{ editAll }}" style="flex:1 1 180px;height:52px;border:1px solid #C3CBD6;border-radius:8px;background:#FFFFFF;color:#18212E;font-size:16px;font-weight:600;cursor:pointer">Editar información</button>
+          <button type="button" onClick="{{ submit }}" disabled="{{ submitting }}" style="flex:1 1 180px;height:52px;border:0;border-radius:8px;background:#1F3A5F;color:#FFFFFF;font-size:16px;font-weight:600;cursor:pointer" style-hover="background:#17304F">{{ submitLabel }}</button>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isDone }}" hint-placeholder-val="{{ false }}">
+      <div data-screen-label="Reporte generado" style="display:flex;flex-direction:column;gap:16px">
+        <section style="background:#FFFFFF;border:1px solid #DCE1E8;border-radius:10px;padding:22px 18px;display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;align-items:center;gap:10px;color:#1F7A4D;font-weight:600;font-size:15px">
+            <span style="width:10px;height:10px;border-radius:50%;background:#1F7A4D;display:block"></span>
+            Reporte generado y guardado
+          </div>
+          <div style="display:flex;flex-direction:column;gap:2px">
+            <div style="font-size:14px;color:#5B6675">Código</div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:30px;font-weight:600;color:#1F3A5F;letter-spacing:0.01em">{{ resCodigo }}</div>
+          </div>
+          <div style="font-size:15px;color:#3A4554">{{ resResumen }}</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <a href="{{ pdfUrl }}" download="{{ pdfName }}" style="flex:1 1 180px;display:flex;align-items:center;justify-content:center;height:52px;border-radius:8px;background:#1F3A5F;color:#FFFFFF;font-size:16px;font-weight:600;text-decoration:none">Descargar PDF</a>
+            <a href="{{ pdfUrl }}" target="_blank" rel="noopener" style="flex:1 1 180px;display:flex;align-items:center;justify-content:center;height:52px;border-radius:8px;border:1px solid #C3CBD6;background:#FFFFFF;color:#18212E;font-size:16px;font-weight:600;text-decoration:none">Abrir PDF</a>
+            <button type="button" onClick="{{ sharePdf }}" style="flex:1 1 100%;height:52px;border-radius:8px;border:1px solid #1F3A5F;background:#EAF0F7;color:#1F3A5F;font-size:16px;font-weight:600;cursor:pointer">Compartir PDF</button>
+          </div>
+          <sc-if value="{{ hasMailMsg }}" hint-placeholder-val="{{ false }}">
+            <div style="font-size:14px;color:{{ mailColor }}">{{ mailMsg }}</div>
+          </sc-if>
+          <sc-if value="{{ hasShareMsg }}" hint-placeholder-val="{{ false }}">
+            <div style="font-size:14px;color:#5B6675">{{ shareMsg }}</div>
+          </sc-if>
+        </section>
+        <sc-if value="{{ showPreview }}" hint-placeholder-val="{{ false }}"><div style="background:#FFFFFF;border:1px solid #DCE1E8;border-radius:10px;overflow:hidden">
+          <iframe src="{{ pdfUrl }}" title="Vista previa del PDF" style="display:block;width:100%;height:78vh;min-height:480px;border:0;background:#E9ECF0"></iframe>
+        </div></sc-if>
+        <button type="button" onClick="{{ restart }}" style="height:52px;border:1px solid #C3CBD6;border-radius:8px;background:#FFFFFF;color:#18212E;font-size:16px;font-weight:600;cursor:pointer">Diligenciar un nuevo reporte</button>
+      </div>
+    </sc-if>
+  </main>
+
+  <sc-if value="{{ inForm }}" hint-placeholder-val="{{ true }}">
+    <div style="position:sticky;bottom:0;background:#FFFFFF;border-top:1px solid #DCE1E8;box-shadow:0 -4px 16px rgba(24,33,46,0.06)">
+      <div style="max-width:720px;margin:0 auto;padding:10px max(12px, env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));display:flex;gap:10px">
+        <sc-if value="{{ canBack }}" hint-placeholder-val="{{ false }}">
+          <button type="button" onClick="{{ back }}" style="flex:0 0 auto;min-width:96px;height:52px;padding:0 18px;border:1px solid #C3CBD6;border-radius:8px;background:#FFFFFF;color:#18212E;font-size:16px;font-weight:600;cursor:pointer">Atrás</button>
+        </sc-if>
+        <button type="button" onClick="{{ next }}" style="flex:1;height:52px;border:0;border-radius:8px;background:#1F3A5F;color:#FFFFFF;font-size:16px;font-weight:600;cursor:pointer" style-hover="background:#17304F">{{ nextLabel }}</button>
+      </div>
+    </div>
+  </sc-if>
+<sc-if value="{{ confirmOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ stay }}" style="position:fixed;inset:0;z-index:50;background:rgba(16,24,36,0.55);display:flex;align-items:flex-end;justify-content:center;padding:16px max(12px, env(safe-area-inset-right)) calc(16px + env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left))">
+      <div role="alertdialog" aria-modal="true" aria-labelledby="exit-t" aria-describedby="exit-d" onClick="{{ stopProp }}" style="width:100%;max-width:420px;margin-bottom:auto;margin-top:auto;background:#FFFFFF;border-radius:12px;padding:22px 18px 18px;display:flex;flex-direction:column;gap:18px;box-shadow:0 18px 48px rgba(16,24,36,0.25)">
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <h2 id="exit-t" style="margin:0;font-size:19px;line-height:1.3;font-weight:700">¿Deseas salir?</h2>
+          <p id="exit-d" style="margin:0;font-size:15px;color:#3A4554">No se guardarán los cambios.</p>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <button type="button" onClick="{{ stay }}" style="min-height:52px;border:0;border-radius:8px;background:#1F3A5F;color:#FFFFFF;font-size:16px;font-weight:600;cursor:pointer">Permanecer</button>
+          <button type="button" onClick="{{ confirmExit }}" style="min-height:52px;border:1px solid #E3B4AE;border-radius:8px;background:#FFFFFF;color:#B42318;font-size:16px;font-weight:600;cursor:pointer">Salir</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;porPasos&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Formulario&quot;}, &quot;demo&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Pruebas&quot;}}">
+const DRAFT_KEY = 'rd_borrador_v1';
+const STEP_LABELS = ['General', 'Charla', 'Acompañamiento', 'Novedades'];
+const ACTS = ['Montaje de estructura', 'Montaje de módulo e inversor', 'Canalizaciones internas', 'Resanes', 'Visita RETIE', 'Visita operador de red – AIRE', 'Cambio de medidor', 'Otra'];
+const ROLS = ['Información a vecinos', 'Atención de inquietudes', 'Coordinación con propietarios', 'Seguimiento a la contratación local', 'Verificación de afectaciones', 'Otro'];
+const ESTS = ['Resuelta', 'En proceso', 'Pendiente'];
+const NOV = () => ({ descripcion: '', involucrados: '', acciones: '', proximos: '', comentarios: '', estado: '', fotos: [] });
+const EMPTY = () => ({
+  fecha: '', gestor: '', sector: '',
+  charla: { realizada: false, hora: '', responsable: '', asistentes: '', temas: '', totalCampo: '', equipoSocial: '', capacitacionesN: '' },
+  capacitaciones: [{ tema: '', asistentes: '' }],
+  acomp: { ubicacion: '', actividades: [], actividadOtra: '', roles: [], rolOtro: '' },
+  novedades: { tipo: '', items: [NOV()] }
+});
+const DEMO = () => ({
+  fecha: '2026-10-15', gestor: 'Laura Martínez Ríos', sector: 'Vereda El Paraíso – Punto 3',
+  charla: { realizada: true, hora: '07:15', responsable: 'Carlos Pérez (SST)', asistentes: '18', temas: 'Uso correcto de EPP, trabajo seguro en alturas y manejo de herramientas eléctricas.', totalCampo: '22', equipoSocial: '4', capacitacionesN: '2' },
+  capacitaciones: [{ tema: 'Trabajo seguro en alturas', asistentes: '12' }, { tema: 'Atención a la comunidad y manejo de PQRS', asistentes: '6' }],
+  acomp: { ubicacion: 'Vereda El Paraíso – Punto 3', actividades: ['Montaje de estructura', 'Canalizaciones internas', 'Otra'], actividadOtra: 'Replanteo de puesta a tierra', roles: ['Información a vecinos', 'Atención de inquietudes', 'Otro'], rolOtro: 'Registro fotográfico de la actividad' },
+  novedades: { tipo: 'con', items: [
+    { descripcion: 'A las 9:40 a. m. un vecino del predio 14 manifestó inconformidad por el ruido del taladro durante la instalación de la estructura.', involucrados: 'Comunidad (vecino predio 14), contratista de montaje', acciones: 'Se explicó el horario de trabajo y se acordó suspender el uso del taladro entre 12:00 m. y 2:00 p. m.', proximos: 'Verificar cumplimiento del acuerdo – Laura Martínez – 16/10/2026', comentarios: 'El vecino quedó conforme con el acuerdo.', estado: 'Resuelta' },
+    { descripcion: 'El propietario del predio 22 no se encontraba en la vivienda para autorizar el ingreso a la cubierta.', involucrados: 'Propietario predio 22', acciones: 'Se dejó comunicación escrita y se intentó contacto telefónico.', proximos: 'Reprogramar visita – Coordinación social – 17/10/2026', comentarios: '', estado: 'Pendiente' }
+  ] }
+});
+const PH = {
+  descripcion: 'Qué ocurrió, dónde y cuándo', involucrados: 'Comunidad, propietario, contratista, etc.',
+  acciones: 'Acciones realizadas para solucionar o avanzar', proximos: 'Acción, responsable y fecha', comentarios: ''
+};
+const STEP_OF = p => p.startsWith('charla') || p.startsWith('capacitaciones') ? 1 : p.startsWith('acomp') ? 2 : p.startsWith('novedades') ? 3 : 0;
+const C = { border: '#C3CBD6', err: '#B42318', on: '#1F3A5F', onBg: '#EAF0F7', off: '#D5DBE3' };
+
+async function compressImage(file) {
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = url; });
+    const s = Math.min(1, 1280 / Math.max(img.naturalWidth, img.naturalHeight));
+    const w = Math.round(img.naturalWidth * s), h = Math.round(img.naturalHeight * s);
+    const c = document.createElement('canvas'); c.width = w; c.height = h;
+    const ctx = c.getContext('2d'); ctx.fillStyle = '#FFFFFF'; ctx.fillRect(0, 0, w, h); ctx.drawImage(img, 0, 0, w, h);
+    let q = 0.72, src = c.toDataURL('image/jpeg', q);
+    while (src.length > 450000 && q > 0.4) { q -= 0.1; src = c.toDataURL('image/jpeg', q); }
+    return { src, w, h };
+  } finally { URL.revokeObjectURL(url); }
+}
+
+class Component extends DCLogic {
+  state = { step: 0, data: EMPTY(), errors: {}, attempted: false, submitting: false, submitError: '', result: null, confirmOpen: false, wide: false, fotoBusy: {}, fotoMsg: {} };
+
+  componentDidMount() {
+    this.mq = window.matchMedia('(min-width: 900px)');
+    this.onMq = () => this.setState({ wide: this.mq.matches });
+    this.onMq(); this.mq.addEventListener('change', this.onMq);
+    this.onKey = e => { if (e.key === 'Escape' && this.state.confirmOpen) this.setState({ confirmOpen: false }); };
+    window.addEventListener('keydown', this.onKey);
+    const u = p => new URL(p, location.href).href;
+    this.ready = Promise.all([import(u('./api.js')), import(u('./shared.js'))]).then(([api, sh]) => {
+      this.api = api; this.sh = sh; api.preloadPdfAssets();
+    });
+    const demo = this.props.demo === true || /[?&]demo=1/.test(location.search);
+    if (demo) { this.setState({ data: DEMO() }); return; }
+    try {
+      const s = JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null');
+      if (s && s.data) this.setState({ data: { ...EMPTY(), ...s.data }, step: Math.min(s.step || 0, 3) });
+    } catch (e) {}
+  }
+  componentDidUpdate(pp, ps) {
+    if (!this.leaving && !this.state.result && (ps.data !== this.state.data || ps.step !== this.state.step)) {
+      const step = Math.min(this.state.step, 3), save = data => localStorage.setItem(DRAFT_KEY, JSON.stringify({ data, step }));
+      try { save(this.state.data); } catch (e) {
+        try { const d = JSON.parse(JSON.stringify(this.state.data)); d.novedades.items.forEach(x => { x.fotos = []; }); save(d); } catch (e2) {}
+      }
+    }
+  }
+  componentWillUnmount() {
+    if (this.mq) this.mq.removeEventListener('change', this.onMq);
+    window.removeEventListener('keydown', this.onKey);
+    document.body.style.overflow = ''; if (this.state.result) URL.revokeObjectURL(this.state.result.pdfUrl); }
+
+  paged() { return this.props.porPasos !== false; }
+  scope(step) { return this.paged() ? step : null; }
+  validate(data, step) {
+    if (!this.sh) return {};
+    return this.sh.validateReport(this.sh.sanitizeReport(data), this.scope(step));
+  }
+  get(path) { return path.split('.').reduce((o, k) => (o == null ? o : o[k]), this.state.data); }
+  update(mut) {
+    this.setState(s => {
+      const data = JSON.parse(JSON.stringify(s.data));
+      mut(data);
+      return { data, errors: s.attempted ? this.validate(data, s.step) : s.errors };
+    });
+  }
+  set(path, val) {
+    this.update(d => { const ks = path.split('.'); let o = d; for (let i = 0; i < ks.length - 1; i++) o = o[ks[i]]; o[ks[ks.length - 1]] = val; });
+  }
+  toggle(path, item) {
+    this.update(d => { const ks = path.split('.'); const arr = d[ks[0]][ks[1]]; const i = arr.indexOf(item); i >= 0 ? arr.splice(i, 1) : arr.push(item); });
+  }
+  scrollTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
+  scrollToError() {
+    setTimeout(() => {
+      const el = document.querySelector('[data-err="1"]');
+      if (!el) return;
+      window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 90, behavior: 'smooth' });
+      const inp = el.querySelector('input,textarea'); if (inp) inp.focus({ preventScroll: true });
+    }, 30);
+  }
+  async next() {
+    await this.ready;
+    const { step, data } = this.state;
+    const errors = this.validate(data, step);
+    if (Object.keys(errors).length) { this.setState({ errors, attempted: true }); this.scrollToError(); return; }
+    this.setState({ errors: {}, attempted: false, step: this.paged() ? step + 1 : 4 });
+    this.scrollTop();
+  }
+  back() { this.setState(s => ({ step: Math.max(0, s.step - 1), errors: {}, attempted: false })); this.scrollTop(); }
+  goTo(step) { this.setState({ step: this.paged() ? step : 0, errors: {}, attempted: false, submitError: '' }); this.scrollTop(); }
+  async submit() {
+    if (this.state.submitting) return;
+    this.setState({ submitting: true, submitError: '' });
+    try {
+      await this.ready;
+      const res = await this.api.submitReport(this.state.data);
+      if (!res.ok) {
+        const keys = Object.keys(res.errors);
+        if (res.errors._) { this.setState({ submitting: false, submitError: res.errors._ }); return; }
+        const step = this.paged() ? Math.min(...keys.map(STEP_OF)) : 0;
+        this.setState({ submitting: false, step, attempted: true, errors: this.validate(this.state.data, step) });
+        this.scrollToError();
+        return;
+      }
+      try { localStorage.removeItem(DRAFT_KEY); } catch (e) {}
+      this.setState({ submitting: false, result: { codigo: res.codigo, report: res.report, pdf: res.pdf, pdfUrl: URL.createObjectURL(res.pdf) }, shareMsg: '', mail: this.api.emailReport ? 'sending' : '', step: 5 });
+      this.scrollTop();
+      if (this.api.emailReport) this.api.emailReport(res.codigo, res.pdf).then(m => { if (this.state.result && this.state.result.codigo === res.codigo) this.setState({ mail: m }); });
+    } catch (e) {
+      this.setState({ submitting: false, submitError: 'No fue posible generar el reporte. Revisa tu conexión e intenta de nuevo.' });
+    }
+  }
+  async share() {
+    const res = this.state.result; if (!res) return;
+    const { sharePdf } = await import(new URL('./share.js', location.href).href);
+    const out = await sharePdf(res.pdf, 'Reporte-diario-' + res.codigo + '.pdf', 'Reporte diario ' + res.codigo);
+    this.setState({ shareMsg: out === 'downloaded' ? 'Este navegador no permite compartir archivos directamente; el PDF se descargó para que puedas enviarlo.' : '' });
+  }
+  async addFotos(i, ev) {
+    const files = Array.from(ev.target.files || []).filter(f => /^image\//.test(f.type) || /\.(jpe?g|png|heic|heif|webp)$/i.test(f.name));
+    ev.target.value = '';
+    const have = (this.state.data.novedades.items[i].fotos || []).length;
+    const take = files.slice(0, Math.max(0, 2 - have));
+    const msg = files.length > take.length ? 'Solo se permiten 2 fotos por novedad.' : '';
+    if (!take.length) { this.setState(s => ({ fotoMsg: { ...s.fotoMsg, [i]: msg } })); return; }
+    this.setState(s => ({ fotoBusy: { ...s.fotoBusy, [i]: true }, fotoMsg: { ...s.fotoMsg, [i]: '' } }));
+    const out = [], heavy = []; let failed = false;
+    for (const f of take) {
+      if (f.size > 25 * 1024 * 1024) { heavy.push(f.name); continue; }
+      try { const r = await compressImage(f); if (r.src.length > 900000) heavy.push(f.name); else out.push(r); } catch (e) { failed = true; }
+    }
+    this.update(x => { const it = x.novedades.items[i]; if (it) it.fotos = (it.fotos || []).concat(out).slice(0, 2); });
+    this.setState(s => ({ fotoBusy: { ...s.fotoBusy, [i]: false }, fotoMsg: { ...s.fotoMsg, [i]: heavy.length
+      ? (heavy.length === 1 ? 'La foto «' + heavy[0] + '» pesa demasiado y no se puede adjuntar.' : 'Las fotos «' + heavy.join('», «') + '» pesan demasiado y no se pueden adjuntar.') + ' Intenta con otra foto o tómala con menor resolución.'
+      : failed ? 'No se pudo leer una de las fotos. Intenta con otra imagen.' : msg } }));
+  }
+  askExit() {
+    if (this.state.result) { this.exit(); return; }
+    document.body.style.overflow = 'hidden';
+    this.setState({ confirmOpen: true });
+  }
+  stay() { document.body.style.overflow = ''; this.setState({ confirmOpen: false }); }
+  exit() {
+    this.leaving = true;
+    try { localStorage.removeItem(DRAFT_KEY); } catch (e) {}
+    document.body.style.overflow = '';
+    location.href = new URL('./', location.href).href;
+  }
+  restart() {
+    if (this.state.result) URL.revokeObjectURL(this.state.result.pdfUrl);
+    this.setState({ step: 0, data: EMPTY(), errors: {}, attempted: false, result: null, submitError: '', shareMsg: '', mail: '', fotoBusy: {}, fotoMsg: {} });
+    this.scrollTop();
+  }
+
+  fld(path, label, o = {}) {
+    const v = this.get(path); const e = this.state.errors[path] || '';
+    return {
+      id: 'f-' + path.replace(/\./g, '-'), label, value: v == null ? '' : v, error: e, hasError: !!e, errFlag: e ? '1' : '0',
+      border: e ? C.err : C.border, type: o.type || 'text', inputMode: o.numeric ? 'numeric' : (o.inputMode || 'text'),
+      placeholder: o.ph || '', multiline: !!o.multiline, single: !o.multiline, hint: o.hint || '', hasHint: !!o.hint,
+      onChange: ev => { let x = ev.target.value; if (o.numeric) x = x.replace(/\D/g, '').slice(0, 5); this.set(path, x); }
+    };
+  }
+  opt(checked, onChange, label, extra) {
+    return { label, checked, onChange, border: checked ? C.on : C.off, bg: checked ? C.onBg : '#FFFFFF', ...extra };
+  }
+
+  renderVals() {
+    const { step, data: d, errors, submitting, result } = this.state;
+    const paged = this.paged();
+    const inForm = step <= 3;
+    const show = n => inForm && (!paged || step === n);
+    const nErr = Object.keys(errors).length;
+
+    const caps = d.capacitaciones.map((c, i) => {
+      const tema = this.fld('capacitaciones.' + i + '.tema', 'Tema');
+      const asist = this.fld('capacitaciones.' + i + '.asistentes', 'Asistentes', { numeric: true });
+      const msg = [tema.error, asist.error].filter(Boolean).join(' ');
+      return { num: i + 1, tema, asist, hasError: !!msg, error: msg, canRemove: d.capacitaciones.length > 1,
+        onRemove: () => this.update(x => { x.capacitaciones.splice(i, 1); }) };
+    });
+    const capCount = this.sh ? this.sh.cleanCapacitaciones(d.capacitaciones).filter(x => x.tema).length : 0;
+
+    const mkOpts = (list, key, otherKey, otherLabel) => list.map(o => {
+      const checked = d.acomp[key].includes(o);
+      const isOther = o === otherLabel;
+      return this.opt(checked, () => this.toggle('acomp.' + key, o), o, {
+        showOther: isOther && checked, other: isOther ? this.fld('acomp.' + otherKey, o) : this.fld('acomp.' + otherKey, o)
+      });
+    });
+
+    const novs = d.novedades.items.map((n, i) => {
+      const p = 'novedades.items.' + i + '.';
+      const ee = errors[p + 'estado'] || '';
+      return {
+        num: i + 1, canRemove: d.novedades.items.length > 1,
+        onRemove: () => this.update(x => { x.novedades.items.splice(i, 1); }),
+        ...(() => {
+          const fs = n.fotos || [], busy = !!(this.state.fotoBusy || {})[i], fm = (this.state.fotoMsg || {})[i] || '';
+          return {
+            fotos: fs.map((f, j) => ({ src: f.src, alt: 'Foto ' + (j + 1) + ' de la novedad ' + (i + 1), removeLabel: 'Quitar foto ' + (j + 1),
+              onRemove: () => this.update(x => { x.novedades.items[i].fotos.splice(j, 1); }) })),
+            fotosCount: fs.length, hasFotos: fs.length > 0, canAddFoto: fs.length < 2,
+            fotoBtnLabel: busy ? 'Procesando foto…' : (fs.length ? '+ Anexar otra foto' : '+ Anexar fotos'),
+            onAddFotos: ev => this.addFotos(i, ev), fotoMsg: fm, hasFotoMsg: !!fm
+          };
+        })(),
+        fields: [
+          ['descripcion', 'Descripción (qué ocurrió, dónde y cuándo)'],
+          ['involucrados', 'Personas o áreas involucradas'],
+          ['acciones', 'Acciones realizadas para solucionar o avanzar'],
+          ['proximos', 'Próximos pasos (acción, responsable y fecha)'],
+          ['comentarios', 'Comentarios']
+        ].map(([k, l]) => this.fld(p + k, l, { multiline: true, ph: PH[k] })),
+        estados: ESTS.map(s => {
+          const on = n.estado === s;
+          return { label: s, name: 'estado-' + i, checked: on, onChange: () => this.set(p + 'estado', s),
+            border: on ? C.on : (ee ? C.err : C.off), bg: on ? C.on : '#FFFFFF', color: on ? '#FFFFFF' : '#18212E' };
+        }),
+        estadoError: ee, hasEstadoError: !!ee, estadoErrFlag: ee ? '1' : '0'
+      };
+    });
+
+    const tipo = d.novedades.tipo;
+    const tipoErr = errors['novedades.tipo'] || '';
+    const fmt = iso => iso ? iso.split('-').reverse().join('/') : '';
+    const dash = v => (v === '' || v == null ? '—' : String(v));
+    const row = (k, v) => ({ k, v: dash(v), color: v === '' || v == null ? '#8A94A3' : '#18212E' });
+    const c = d.charla, a = d.acomp;
+    const capsList = d.capacitaciones.filter(x => x.tema || x.asistentes);
+    const review = [
+      { title: 'Información general', step: 0, rows: [row('Fecha', fmt(d.fecha)), row('Gestor(a) que reporta', d.gestor), row('Sector / vereda / punto', d.sector)] },
+      { title: '1. Charla pre-operativa', step: 1, rows: [row('Se realizó charla pre-operativa', c.realizada ? 'Sí' : 'No')].concat(c.realizada ? [
+        row('Hora', c.hora), row('Responsable', c.responsable), row('Asistentes (n.º)', c.asistentes), row('Temas abordados', c.temas),
+        row('Total de personas en campo (n.º)', c.totalCampo), row('Del total, equipo social (n.º)', c.equipoSocial), row('Capacitaciones realizadas (n.º)', c.capacitacionesN)] : [])
+        .concat([row('Detalle de capacitaciones', capsList.map(x => x.tema + ' — ' + (x.asistentes || '0') + ' asistentes').join('\n'))]) },
+      { title: '2. Acompañamiento social', step: 2, rows: [row('Ubicación', a.ubicacion),
+        row('Actividad técnica acompañada', a.actividades.map(x => x === 'Otra' ? 'Otra: ' + a.actividadOtra : x).join('\n')),
+        row('Rol del equipo social', a.roles.map(x => x === 'Otro' ? 'Otro: ' + a.rolOtro : x).join('\n'))] },
+      { title: '3. Novedades', step: 3, rows: [row('Resultado de la jornada', tipo === 'sin' ? 'Sin novedades' : tipo === 'con' ? 'Con novedades (' + d.novedades.items.length + ')' : '')] }
+    ];
+    if (tipo === 'con') d.novedades.items.forEach((n, i) => review.push({ title: 'Novedad ' + (i + 1), step: 3, rows: [
+      row('Descripción', n.descripcion), row('Personas o áreas involucradas', n.involucrados), row('Acciones realizadas', n.acciones),
+      row('Próximos pasos', n.proximos), row('Comentarios', n.comentarios), row('Fotos', (n.fotos || []).length ? (n.fotos.length === 1 ? '1 foto adjunta' : n.fotos.length + ' fotos adjuntas') : ''), row('Estado', n.estado)] }));
+    review.forEach(s => { s.onEdit = () => this.goTo(s.step); });
+
+    const r = result && result.report;
+    return {
+      showStepCount: paged && inForm, stepCount: 'Paso ' + (step + 1) + ' de 4',
+      showProgress: paged && step <= 4,
+      progress: STEP_LABELS.map((l, i) => ({
+        label: l, bar: i <= step ? C.on : '#DCE1E8', color: i === step ? '#18212E' : '#5B6675', weight: i === step ? 600 : 400,
+        disabled: i >= step, onClick: () => { if (i < step) this.goTo(i); }
+      })),
+      inForm, s0: show(0), s1: show(1), s2: show(2), s3: show(3), isReview: step === 4, isDone: step === 5 && !!result,
+      hasStepErrors: inForm && nErr > 0,
+      stepErrorText: nErr === 1 ? 'Hay 1 campo por completar o corregir.' : 'Hay ' + nErr + ' campos por completar o corregir.',
+      codePreview: d.fecha ? d.fecha.replace(/-/g, '') + '-###' : 'AAAAMMDD-###',
+      generalFields: [
+        this.fld('fecha', 'Fecha', { type: 'date' }),
+        this.fld('gestor', 'Gestor(a) que reporta', { ph: 'Nombre y apellido' }),
+        this.fld('sector', 'Sector / vereda / punto', { ph: 'Ej.: Vereda El Paraíso – Punto 3' })
+      ],
+      charlaOpt: this.opt(c.realizada, ev => this.set('charla.realizada', ev.target.checked), ''),
+      charlaOpen: c.realizada,
+      charlaFields: [
+        this.fld('charla.hora', 'Hora', { type: 'time' }),
+        this.fld('charla.responsable', 'Responsable', { ph: 'Quién dirigió la charla' }),
+        this.fld('charla.asistentes', 'Asistentes (n.º)', { numeric: true }),
+        this.fld('charla.temas', 'Temas abordados', { multiline: true }),
+        this.fld('charla.totalCampo', 'Total de personas en campo (n.º)', { numeric: true }),
+        this.fld('charla.equipoSocial', 'Del total, equipo social (n.º)', { numeric: true }),
+        this.fld('charla.capacitacionesN', 'Capacitaciones realizadas (n.º)', { numeric: true,
+          hint: capCount ? 'En el detalle has registrado ' + capCount + (capCount === 1 ? ' capacitación.' : ' capacitaciones.') : '' })
+      ],
+      caps, addCap: () => this.update(x => { x.capacitaciones.push({ tema: '', asistentes: '' }); }),
+      ubic: this.fld('acomp.ubicacion', 'Ubicación'),
+      canCopySector: !!d.sector && !a.ubicacion, sectorShort: d.sector.length > 28 ? d.sector.slice(0, 28) + '…' : d.sector,
+      copySector: () => this.set('acomp.ubicacion', d.sector),
+      actOpts: mkOpts(ACTS, 'actividades', 'actividadOtra', 'Otra'),
+      rolOpts: mkOpts(ROLS, 'roles', 'rolOtro', 'Otro'),
+      tipoOpts: [
+        this.opt(tipo === 'sin', () => this.set('novedades.tipo', 'sin'), 'Sin novedades', { sub: 'Durante la jornada no se presentaron novedades' }),
+        this.opt(tipo === 'con', () => this.update(x => { x.novedades.tipo = 'con'; if (!x.novedades.items.length) x.novedades.items.push(NOV()); }), 'Con novedades', { sub: 'Registra cada novedad; puedes agregar varias' })
+      ].map(o => tipoErr && !o.checked ? { ...o, border: C.err } : o),
+      tipoError: tipoErr, hasTipoError: !!tipoErr, tipoErrFlag: tipoErr ? '1' : '0',
+      conNovedades: tipo === 'con', novs, addNov: () => this.update(x => { x.novedades.items.push(NOV()); }),
+      ...(() => {
+        const m = this.state.mail || '';
+        const t = { sending: 'Enviando el PDF por correo…', sent: 'El PDF se envió por correo a la oficina.', failed: 'No se pudo enviar el correo. El reporte quedó guardado y se puede consultar en el panel.' }[m] || '';
+        return { hasMailMsg: !!t, mailMsg: t, mailColor: m === 'failed' ? '#8A1C12' : m === 'sent' ? '#1F7A4D' : '#5B6675' };
+      })(),
+      canBack: paged && step > 0,
+      back: () => this.back(), next: () => this.next(),
+      nextLabel: !paged || step === 3 ? 'Revisar reporte' : 'Continuar',
+      review, editAll: () => this.goTo(0), submit: () => this.submit(), submitting,
+      submitLabel: submitting ? 'Generando reporte…' : 'Generar reporte',
+      submitError: this.state.submitError, hasSubmitError: !!this.state.submitError,
+      resCodigo: result ? result.codigo : '', pdfUrl: result ? result.pdfUrl : '', pdfName: result ? 'Reporte-diario-' + result.codigo + '.pdf' : '',
+      resResumen: r ? fmt(r.fecha) + ' · ' + r.gestor + ' · ' + r.sector : '',
+      restart: () => this.restart(),
+      sharePdf: () => this.share(), shareMsg: this.state.shareMsg || '', hasShareMsg: !!this.state.shareMsg,
+      askExit: () => this.askExit(), stay: () => this.stay(), confirmExit: () => this.exit(),
+      stopProp: e => e.stopPropagation(), confirmOpen: this.state.confirmOpen,
+      showPreview: this.state.wide && !!result
+    };
+  }
+}
+</script>
+</body>
+</html>
